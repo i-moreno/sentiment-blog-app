@@ -1,10 +1,18 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from app.db.config import settings
+from functools import lru_cache
+
+import app.db.config as config
+
+
+@lru_cache
+def get_settings():
+    return config.Settings()
+
 
 engine = create_engine(
-    settings.database_url,
+    get_settings().database_url,
     pool_pre_ping=True
 )
 
