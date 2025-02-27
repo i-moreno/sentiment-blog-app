@@ -8,11 +8,11 @@ fastapi = {extras = ["standard"], version = "0.115.8"}
 pylint = "*"
 sqlalchemy = "*"
 pydantic-settings = "*"
-psycopg2 = "*"
-faker = "*"
 python-dotenv = "*"
+mangum = "*"
 
 [dev-packages]
+faker = "*"
 
 [requires]
 python_version = "3.10"

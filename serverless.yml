@@ -1,0 +1,65 @@
+service: blog-sentiment-app
+
+frameworkVersion: "4"
+
+provider:
+  name: aws
+  region: us-east-1
+  ecr:
+    images:
+      blog-api:
+        uri: 360367874658.dkr.ecr.us-east-1.amazonaws.com/serverless-blog-sentiment-app-dev:1740684472
+
+functions:
+  app:
+    name: blog-sentiment-app-v2
+    image:
+      name: blog-api
+    events:
+      - httpApi:
+          path: /{proxy+}
+          method: any
+
+  # Sentiment analysis function triggered by DynamoDB Streams (for every new comment)
+  # sentimentAnalyzer:
+  #   handler: sentiment.handler
+  #   events:
+  #     - stream:
+  #         type: dynamodb
+  #         arn:
+  #           Fn::GetAtt: [BlogAppTable, StreamArn]
+  #         batchSize: 100
+  #         startingPosition: LATEST
+
+resources:
+  Resources:
+    BlogAppTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: BlogAppTable
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: PK
+            AttributeType: S
+          - AttributeName: SK
+            AttributeType: S
+          - AttributeName: GSI1PK
+            AttributeType: S
+          - AttributeName: GSI1SK
+            AttributeType: S
+        KeySchema:
+          - AttributeName: PK
+            KeyType: HASH
+          - AttributeName: SK
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: GSI1
+            KeySchema:
+              - AttributeName: GSI1PK
+                KeyType: HASH
+              - AttributeName: GSI1SK
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES

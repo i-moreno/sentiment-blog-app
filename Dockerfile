@@ -1,22 +1,18 @@
-FROM python:3.10.4
+FROM public.ecr.aws/lambda/python:3.10
 
-WORKDIR /code
-
-# Upgrade pip and install pipenv
+# Install pipenv
 RUN pip install --upgrade pip
 RUN pip install pipenv
 
-# Copy Pipfile and Pipfile.lock  before installing
-COPY Pipfile Pipfile.lock* /code/
+# Copy the entire `app` folder into /code/app
+COPY ./app /var/task/app
 
-# --system: installs packages into the system Python environment (rather than creating a virtualenv).
-# --deploy: ensures the Pipfile.lock is used (if present) and will fail if there’s a mismatch.
-#	--ignore-pipfile: ensures it only uses the lock file for consistent builds.
+# Copy Pipfile and install dependencies
+COPY Pipfile Pipfile.lock* ./
 RUN pipenv install --system --deploy --ignore-pipfile
 
-COPY ./app /code/app
-
-# Expose port 80 (optional, but a good practice for clarity)
+# (Optional) Expose port 80 for local runs
 EXPOSE 80
 
-CMD [ "fastapi", "run", "app/main.py", "--port", "80" ]
+# Reference the `handler` in `app/main.py`
+CMD ["app.main.handler"]

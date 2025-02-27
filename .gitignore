@@ -3,3 +3,4 @@
 seed.py
 .env.local
 .env.dev
+.serverless
