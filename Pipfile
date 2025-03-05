@@ -10,6 +10,7 @@ sqlalchemy = "*"
 pydantic-settings = "*"
 python-dotenv = "*"
 mangum = "*"
+boto3 = "*"
 
 [dev-packages]
 faker = "*"

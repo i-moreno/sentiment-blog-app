@@ -1,9 +1,10 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: improvedchickadee
 service: blog-sentiment-app
-
-frameworkVersion: "4"
 
 provider:
   name: aws
+  runtime: python3.10
   region: us-east-1
   ecr:
     images:
@@ -13,23 +14,16 @@ provider:
 functions:
   app:
     name: blog-sentiment-app-v2
-    image:
-      name: blog-api
+    # image:
+    #   name: blog-api
+    handler: app.main.handler
     events:
       - httpApi:
-          path: /{proxy+}
-          method: any
-
-  # Sentiment analysis function triggered by DynamoDB Streams (for every new comment)
-  # sentimentAnalyzer:
-  #   handler: sentiment.handler
-  #   events:
-  #     - stream:
-  #         type: dynamodb
-  #         arn:
-  #           Fn::GetAtt: [BlogAppTable, StreamArn]
-  #         batchSize: 100
-  #         startingPosition: LATEST
+          path: /
+          method: GET
+      - httpApi:
+          path: /posts
+          method: POST
 
 resources:
   Resources:
@@ -63,3 +57,6 @@ resources:
               ProjectionType: ALL
         StreamSpecification:
           StreamViewType: NEW_AND_OLD_IMAGES
+
+plugins:
+  - serverless-offline
