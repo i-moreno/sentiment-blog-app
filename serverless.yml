@@ -23,7 +23,19 @@ functions:
           method: GET
       - httpApi:
           path: /posts
+          method: GET
+      - httpApi:
+          path: /post
           method: POST
+      - httpApi:
+          path: /post/{post_id}
+          method: PATCH
+      - httpApi:
+          path: /post/{post_id}
+          method: DELETE
+      - httpApi:
+          path: /post/restore/{post_id}
+          method: PATCH
 
 resources:
   Resources:
@@ -32,6 +44,7 @@ resources:
       Properties:
         TableName: BlogAppTable
         BillingMode: PAY_PER_REQUEST
+
         AttributeDefinitions:
           - AttributeName: PK
             AttributeType: S
@@ -46,6 +59,7 @@ resources:
             KeyType: HASH
           - AttributeName: SK
             KeyType: RANGE
+
         GlobalSecondaryIndexes:
           - IndexName: GSI1
             KeySchema:
@@ -55,6 +69,7 @@ resources:
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL
+
         StreamSpecification:
           StreamViewType: NEW_AND_OLD_IMAGES
 
