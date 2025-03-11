@@ -1,7 +1,11 @@
 .venv
 .vscode
-seed.py
+
 .env.local
 .env.dev
 .serverless
 /node_modules
+
+# Ignore __pycache__ folders
+__pycache__/
+*.pyc
