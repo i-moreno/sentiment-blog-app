@@ -36,6 +36,18 @@ functions:
       - httpApi:
           path: /post/restore/{post_id}
           method: PATCH
+      - httpApi:
+          path: /comment/{post_id}
+          method: POST
+      - httpApi:
+          path: /comment/{post_id}
+          method: GET
+      - httpApi:
+          path: /comment/{post_id}/{comment_id}
+          method: PATCH
+      - httpApi:
+          path: /comment/{post_id}/{comment_id}
+          method: DELETE
 
 resources:
   Resources:

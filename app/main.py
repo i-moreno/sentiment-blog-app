@@ -1,17 +1,16 @@
 from fastapi import FastAPI, HTTPException, Query
 from mangum import Mangum
 from typing import Optional
-import boto3
 
 from app.models.post import BlogPost, PostUpdate
+from app.models.comment import Comment, CommentUpdate
 from app.repo.post import BlogRepository
+from app.repo.comment import CommentRepository
 
 app = FastAPI(title="Blog API")
 
-dynamo = boto3.resource('dynamodb')
-table = dynamo.Table('BlogAppTable')
-
 blog_repo = BlogRepository()
+comment_repo = CommentRepository()
 
 
 @app.get("/")
@@ -76,6 +75,50 @@ def restore_post(post_id: str):
     try:
         restored_post = blog_repo.restore_post(post_id=post_id)
         return {"message": 'Post restored successfully', "post": restored_post}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Create comment
+@app.post("/comment/{post_id}")
+def create_comment(post_id: str, comment: Comment):
+    try:
+        comment_created = comment_repo.create_comment(
+            post_id=post_id, comment=comment)
+        return {"message": 'Comment created correctly', "comment": comment_created}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# List Comments
+@app.get("/comment/{post_id}")
+def get_comments(post_id: str, limit: int = 5, last_evaluated_pk: str = None, last_evaluated_sk: str = None):
+    try:
+        comments, next_key = comment_repo.get_post_comments(
+            post_id=post_id,
+            limit=limit,
+            last_evaluated_pk=last_evaluated_pk,
+            last_evaluated_sk=last_evaluated_sk)
+        return {"comments":  comments, "next_key": next_key}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.patch("/comment/{post_id}/{comment_id}")
+def restore_post(post_id: str, comment_id: str,  comment: CommentUpdate):
+    try:
+        updated_comment = comment_repo.update_comment(
+            post_id=post_id, comment_id=comment_id, comment=comment)
+        return {"message": 'Comment updated successfully', "comment": updated_comment}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/comment/{post_id}/{comment_id}")
+def delete_comment(post_id: str, comment_id: str):
+    try:
+        comment_repo.delete_comment(post_id=post_id, comment_id=comment_id)
+        return {"message": "Comment deleted correctly"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -3,7 +3,6 @@ import uuid
 from app.db import table
 from typing import Dict, Any
 from app.models.post import BlogPost
-from boto3.dynamodb.conditions import Key
 from datetime import datetime, timezone
 
 
@@ -112,7 +111,7 @@ class BlogRepository:
                 ExpressionAttributeValues=expression_attribute_values,
                 ReturnValues="ALL_NEW"  # Return the updated post
             )
-            print(response)
+
             return response.get('Attributes', {})
         except Exception as e:
             raise ValueError(f"Failed to update post {post_id}: {str(e)}")
