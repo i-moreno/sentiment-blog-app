@@ -18,4 +18,5 @@ class PostUpdate(BaseModel):
 
 
 class PostMediaUpdate(BaseModel):
-    main_image_url: str
+    main_image_url: Optional[str] = None
+    thumbnail_url: Optional[str] = None

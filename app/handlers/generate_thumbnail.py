@@ -1,8 +1,13 @@
 import boto3
 import io
+import re
+
 from PIL import Image
+from app.repo.post import BlogRepository
+from app.models.post import PostMediaUpdate
 
 s3_client = boto3.client("s3")
+blog_repo = BlogRepository()
 
 
 def generate_thumbnail(event, context):
@@ -41,7 +46,23 @@ def generate_thumbnail(event, context):
                 ContentType=response["ContentType"]
             )
 
-            print(f"Thumbnail created: {thumbnail_key}")
+            thumbnail_url = f"https://{bucket}.s3.amazonaws.com/{thumbnail_key}"
+            print(f"Thumbnail created: {thumbnail_url}")
+
+            # Extract post_id from the key using a regex.
+            # Assuming key format: /images/{post_id}/{filename}
+            match = re.match(r"images/([^/]+)/.*", key)
+            if match:
+                post_id = match.group(1)
+
+                # Update DynamoDB record with thumbnail URL.
+                post_media_update = PostMediaUpdate(
+                    thumbnail_url=thumbnail_url)
+                updated_post = blog_repo.update_post_media(
+                    post_id, post_media_update)
+                print(f"Updated post media, {updated_post}")
+            else:
+                print("Post ID could not be extracted from key; skipping DB update.")
 
         except Exception as e:
             print(f"Error processing {key} from bucket {bucket}: {e}")

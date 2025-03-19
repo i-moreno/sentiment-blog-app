@@ -29,6 +29,11 @@ provider:
         - "s3:PutObject"
       Resource:
         - "arn:aws:s3:::${self:custom.imageBucket}/*"
+    - Effect: "Allow"
+      Action: 
+        - "dynamodb:UpdateItem"
+      Resource: 
+        - "arn:aws:dynamodb:${self:provider.region}:${aws:accountId}:table/BlogAppTable"
   ecr:
     images:
       blog-api:

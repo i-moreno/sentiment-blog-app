@@ -55,6 +55,16 @@ def create_post(post: BlogPost):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# Update post
+@app.patch("/post/{post_id}")
+def update_post(post_id: str, updates: PostUpdate):
+    try:
+        updated_post = blog_repo.update_post(post_id=post_id, post=updates)
+        return {"message": "Post updated correctly", "post": updated_post}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Uploading an image to a post
 @app.post("/post/{post_id}/image")
 async def upload_post_image(post_id: str, file: UploadFile = File(...)):
@@ -72,19 +82,8 @@ async def upload_post_image(post_id: str, file: UploadFile = File(...)):
         # Update the post record in DynamoDB with the image URLs
         post_media_update = PostMediaUpdate(main_image_url=main_image_url)
 
-        print(post_media_update)
         updated_post = blog_repo.update_post_media(post_id, post_media_update)
         return {"message": "Image uploaded successfully", "post": updated_post}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-# Update post
-@app.patch("/post/{post_id}")
-def update_post(post_id: str, updates: PostUpdate):
-    try:
-        updated_post = blog_repo.update_post(post_id=post_id, post=updates)
-        return {"message": "Post updated correctly", "post": updated_post}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
