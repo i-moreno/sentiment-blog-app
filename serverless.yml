@@ -48,6 +48,12 @@ functions:
       - httpApi:
           path: /comment/{post_id}/{comment_id}
           method: DELETE
+      - httpApi:
+          path: /sentiment/{post_id}
+          method: POST
+      - httpApi:
+          path: /sentiment/{post_id}/{sentiment_id}
+          method: PATCH
 
 resources:
   Resources:

@@ -48,15 +48,10 @@ class CommentRepository:
                 "SK": last_evaluated_sk
             }
 
-        try:
-            response = self.table.query(**expression)
-            items = response.get('Items', [])
-            last_key = response.get('LastEvaluatedKey')
-            return items, last_key
-
-        except ValueError as e:
-            raise ValueError(
-                f"DynamoDB query failed: {e.response['Error']['Message']}")
+        response = self.table.query(**expression)
+        items = response.get('Items', [])
+        last_key = response.get('LastEvaluatedKey')
+        return items, last_key
 
     def update_comment(self, post_id: str, comment_id: str, comment: Dict[str, str]):
         # Build UpdateExpression dynamically
@@ -80,36 +75,29 @@ class CommentRepository:
         # Remove the trailing comma and space
         update_expression = update_expression.rstrip(", ")
 
-        try:
-            response = self.table.update_item(
-                Key={
-                    'PK': f'BLOG#{post_id}',
-                    'SK': f'COMMENT#{comment_id}'
-                },
-                UpdateExpression=update_expression,
-                ExpressionAttributeNames=expression_attribute_names,
-                ExpressionAttributeValues=expression_attribute_values,
-                ReturnValues="ALL_NEW"  # Return the updated comment
-            )
+        response = self.table.update_item(
+            Key={
+                'PK': f'BLOG#{post_id}',
+                'SK': f'COMMENT#{comment_id}'
+            },
+            UpdateExpression=update_expression,
+            ExpressionAttributeNames=expression_attribute_names,
+            ExpressionAttributeValues=expression_attribute_values,
+            ReturnValues="ALL_NEW"  # Return the updated comment
+        )
 
-            return response.get('Attributes', {})
-        except Exception as e:
-            raise ValueError(f"Failed to update comment {post_id}: {str(e)}")
+        return response.get('Attributes', {})
 
     def delete_comment(self, post_id: str, comment_id: str) -> Dict[str, Any]:
-        try:
-            response = self.table.update_item(
-                Key={
-                    'PK': f'BLOG#{post_id}',
-                    'SK': f'COMMENT#{comment_id}'
-                },
-                UpdateExpression="SET archived = :archived",
-                ExpressionAttributeValues={
-                    ":archived": True
-                },
-                ReturnValues="ALL_NEW"
-            )
-            return response.get('Attributes', {})
-        except Exception as e:
-            raise ValueError(
-                f"Failed to delete comment for Post: {post_id}: {str(e)}")
+        response = self.table.update_item(
+            Key={
+                'PK': f'BLOG#{post_id}',
+                'SK': f'COMMENT#{comment_id}'
+            },
+            UpdateExpression="SET archived = :archived",
+            ExpressionAttributeValues={
+                ":archived": True
+            },
+            ReturnValues="ALL_NEW"
+        )
+        return response.get('Attributes', {})

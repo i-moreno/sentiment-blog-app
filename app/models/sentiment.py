@@ -3,16 +3,15 @@ from typing import Optional
 from datetime import datetime
 
 
-class Comment(BaseModel):
-    comment_id: Optional[str] = None
-    content: str
-    archived: Optional[bool] = False
+class Sentiment(BaseModel):
+    sentiment_id: str
+    sentiment: str
     created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
 
 
-class CommentUpdate(BaseModel):
-    content: str
+class SentimentUpdate(BaseModel):
+    sentiment: str
     last_updated_at: Optional[datetime] = None

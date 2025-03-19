@@ -4,13 +4,16 @@ from typing import Optional
 
 from app.models.post import BlogPost, PostUpdate
 from app.models.comment import Comment, CommentUpdate
+from app.models.sentiment import Sentiment, SentimentUpdate
 from app.repo.post import BlogRepository
 from app.repo.comment import CommentRepository
+from app.repo.sentiment import SentimentRepository
 
 app = FastAPI(title="Blog API")
 
 blog_repo = BlogRepository()
 comment_repo = CommentRepository()
+sentiment_repo = SentimentRepository()
 
 
 @app.get("/")
@@ -105,7 +108,7 @@ def get_comments(post_id: str, limit: int = 5, last_evaluated_pk: str = None, la
 
 
 @app.patch("/comment/{post_id}/{comment_id}")
-def restore_post(post_id: str, comment_id: str,  comment: CommentUpdate):
+def update_comment(post_id: str, comment_id: str,  comment: CommentUpdate):
     try:
         updated_comment = comment_repo.update_comment(
             post_id=post_id, comment_id=comment_id, comment=comment)
@@ -119,6 +122,26 @@ def delete_comment(post_id: str, comment_id: str):
     try:
         comment_repo.delete_comment(post_id=post_id, comment_id=comment_id)
         return {"message": "Comment deleted correctly"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/sentiment/{post_id}")
+def create_sentiment(post_id: str, sentiment: Sentiment):
+    try:
+        sentiment_created = sentiment_repo.create_sentiment(
+            post_id=post_id, sentiment=sentiment)
+        return {"message": 'Sentiment created successfully', "sentiment": sentiment_created}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.patch("/comment/{post_id}/{sentiment_id}")
+def update_sentiment(post_id: str, sentiment_id: str, sentiment: SentimentUpdate):
+    try:
+        updated_sentiment = sentiment_repo.update_sentiment(
+            post_id=post_id, sentiment_id=sentiment_id, sentiment=sentiment)
+        return {"message": 'Sentiment updated successfully', "comment": updated_sentiment}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
