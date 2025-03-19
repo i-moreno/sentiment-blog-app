@@ -11,6 +11,11 @@ class BlogPost(BaseModel):
     class Config:
         from_attributes = True
 
+
 class PostUpdate(BaseModel):
     title: Optional[str] = None
     content: Optional[str] = None
+
+
+class PostMediaUpdate(BaseModel):
+    main_image_url: str

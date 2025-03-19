@@ -2,10 +2,33 @@
 org: improvedchickadee
 service: blog-sentiment-app
 
+custom:
+  stage: ${opt:stage, 'dev'}
+  imageBucket: blogpost-images-bucket-${self:custom.stage}
+  pythonRequirements:
+    # When set to true, the plugin runs pip install inside a Docker container that mimics the AWS Lambda environment. 
+    # This is especially useful if your local environment is different 
+    # (for example, macOS or Windows) to ensure binary packages compile correctly for Lambda.
+    dockerizePip: true
+    # This option removes unnecessary files (like tests, documentation, and other non-essential data) from the installed packages. 
+    # It helps reduce the final deployment package size.
+    slim: true
+    # This tells the plugin not to create a separate Lambda layer for your dependencies.
+    # Instead, it bundles them directly into your function’s deployment package.
+    # If you set this to true, your dependencies would be packaged as a separate layer, which can be reused by multiple functions.
+    layer: false
+
 provider:
   name: aws
   runtime: python3.10
-  region: us-east-1
+  region: us-east-1  
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "s3:GetObject"
+        - "s3:PutObject"
+      Resource:
+        - "arn:aws:s3:::${self:custom.imageBucket}/*"
   ecr:
     images:
       blog-api:
@@ -13,7 +36,7 @@ provider:
 
 functions:
   app:
-    name: blog-sentiment-app-v2
+    name: blog-sentiment-app-v3
     # image:
     #   name: blog-api
     handler: app.main.handler
@@ -54,6 +77,28 @@ functions:
       - httpApi:
           path: /sentiment/{post_id}/{sentiment_id}
           method: PATCH
+      - httpApi:
+          path: /post/{post_id}/image
+          method: POST
+
+  generateThumbnail:
+    handler: app.handlers.generate_thumbnail.generate_thumbnail
+    events:
+    - s3:
+        bucket: ${self:custom.imageBucket}
+        event: s3:ObjectCreated:*
+        rules:
+          - suffix: .jpg
+    - s3:
+        bucket: ${self:custom.imageBucket}
+        event: s3:ObjectCreated:*
+        rules:
+          - suffix: .jpeg
+    - s3:
+        bucket: ${self:custom.imageBucket}
+        event: s3:ObjectCreated:*
+        rules:
+          - suffix: .png
 
 resources:
   Resources:
@@ -93,3 +138,4 @@ resources:
 
 plugins:
   - serverless-offline
+  - serverless-python-requirements

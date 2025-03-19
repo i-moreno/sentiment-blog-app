@@ -6,11 +6,11 @@ name = "pypi"
 [packages]
 fastapi = {extras = ["standard"], version = "0.115.8"}
 pylint = "*"
-sqlalchemy = "*"
 pydantic-settings = "*"
 python-dotenv = "*"
 mangum = "*"
 boto3 = "*"
+pillow = "*"
 
 [dev-packages]
 faker = "*"

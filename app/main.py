@@ -1,13 +1,14 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, UploadFile, File
 from mangum import Mangum
 from typing import Optional
 
-from app.models.post import BlogPost, PostUpdate
+from app.models.post import BlogPost, PostUpdate, PostMediaUpdate
 from app.models.comment import Comment, CommentUpdate
 from app.models.sentiment import Sentiment, SentimentUpdate
 from app.repo.post import BlogRepository
 from app.repo.comment import CommentRepository
 from app.repo.sentiment import SentimentRepository
+from app.services.S3 import S3Service
 
 app = FastAPI(title="Blog API")
 
@@ -50,6 +51,30 @@ def create_post(post: BlogPost):
     try:
         created_post = blog_repo.create_post(post)
         return {"message": 'Post created successfully', "post": created_post}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Uploading an image to a post
+@app.post("/post/{post_id}/image")
+async def upload_post_image(post_id: str, file: UploadFile = File(...)):
+    try:
+        # Read file contents once
+        file_bytes = await file.read()
+
+        bucket_name = "blogpost-images-bucket-dev"
+        s3_service = S3Service(bucket_name=bucket_name)
+
+        # Upload main image and generate thumbnail
+        main_image_url = s3_service.upload_image(
+            file.filename, file_bytes, file.content_type, post_id)
+
+        # Update the post record in DynamoDB with the image URLs
+        post_media_update = PostMediaUpdate(main_image_url=main_image_url)
+
+        print(post_media_update)
+        updated_post = blog_repo.update_post_media(post_id, post_media_update)
+        return {"message": "Image uploaded successfully", "post": updated_post}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

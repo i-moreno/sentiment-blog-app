@@ -2,7 +2,7 @@ import uuid
 
 from app.db import table
 from typing import Dict, Any
-from app.models.post import BlogPost
+from app.models.post import BlogPost, PostMediaUpdate
 from datetime import datetime, timezone
 
 
@@ -66,6 +66,33 @@ class BlogRepository:
         except ValueError as e:
             raise ValueError(
                 f"DynamoDB query failed: {e.response['Error']['Message']}")
+
+    def update_post_media(self, post_id: str, media: PostMediaUpdate) -> Dict[str, Any]:
+        key = {
+            "PK": f"BLOG#{post_id}",
+            "SK": "META"
+        }
+
+        # Convert the model to a dictionary
+        media_dict = media.model_dump(exclude_none=True)
+
+        # Build the update expression and attribute values dynamically
+        update_parts = []
+        expression_attribute_values = {}
+        for field, value in media_dict.items():
+            update_parts.append(f"{field} = :{field}")
+            expression_attribute_values[f":{field}"] = value
+
+        update_expression = "SET " + ", ".join(update_parts)
+
+        response = self.table.update_item(
+            Key=key,
+            UpdateExpression=update_expression,
+            ExpressionAttributeValues=expression_attribute_values,
+            ReturnValues="ALL_NEW"
+        )
+
+        return response.get("Attributes")
 
     def update_post(self, post_id: str, post: Dict[str, Any]) -> Dict[str, Any]:
         """
